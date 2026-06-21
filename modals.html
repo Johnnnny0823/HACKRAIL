@@ -1,0 +1,113 @@
+<!-- Add Item Modal -->
+<div id="modalOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 modal-hidden transition-all duration-300 flex items-center justify-center p-4">
+    <div id="addModalContent" class="bg-darkcard border border-darkborder rounded-3xl w-full max-w-2xl shadow-2xl modal-content-hidden transition-all duration-300 max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-darkborder flex justify-between items-center sticky top-0 bg-darkcard/95 backdrop-blur z-10">
+            <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">✨ 登記新遺失物</h3>
+            <button onclick="closeModal()" class="text-slate-500 hover:text-slate-300 text-2xl transition">&times;</button>
+        </div>
+        <form id="lostItemForm" class="p-6 space-y-5">
+            <!-- 圖片上傳區 -->
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">上傳主要照片 <span class="text-red-500">*</span></label>
+                <input type="file" id="image" accept="image/*" class="w-full text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500/20 file:text-blue-400 hover:file:bg-blue-500/30 transition border border-darkborder p-2 rounded-xl" required>
+                
+                <div id="cropperContainer" class="hidden mt-4 bg-black/30 rounded-xl overflow-hidden border border-slate-700">
+                    <div style="height: 300px;"><img id="imagePreview" src="" class="max-w-full"></div>
+                </div>
+                <div id="cropActions" class="hidden mt-3 flex justify-between items-center">
+                    <button type="button" id="btnCropAnalyze" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 shadow-lg">✅ 裁切並 AI 辨識</button>
+                    <span id="ai_status" class="hidden text-xs px-2 py-1 rounded"></span>
+                </div>
+            </div>
+
+            <!-- 附加照片 -->
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">附加細節照片 (選填)</label>
+                <input type="file" id="additional_images" accept="image/*" multiple class="w-full text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-slate-300 hover:file:bg-slate-600 transition border border-darkborder p-2 rounded-xl">
+                <div id="additionalPreviews" class="flex flex-wrap gap-2 mt-3"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-2">物品類別 <span class="text-red-500">*</span></label>
+                    <select id="category" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                        <option value="電子產品">電子產品</option>
+                        <option value="雨具">雨具</option>
+                        <option value="衣物">衣物</option>
+                        <option value="隨身包">隨身包</option>
+                        <option value="證件/票卡">證件/票卡</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-2">發現地點 <span class="text-red-500">*</span></label>
+                    <div class="flex gap-2">
+                        <select id="station" class="w-1/2 bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-2 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"></select>
+                        <input type="text" id="platform" placeholder="月台/大廳" class="w-1/2 bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-2 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">物品特徵描述 <span class="text-red-500">*</span></label>
+                <textarea id="description" rows="2" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none placeholder-slate-600" placeholder="例如：黑色 iPhone 13，有犀牛盾手機殼..." required></textarea>
+                
+                <label class="flex items-center gap-2 mt-3 cursor-pointer">
+                    <input type="checkbox" id="is_perishable" class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50">
+                    <span class="text-sm font-bold text-amber-400">⚠️ 標記為易腐壞/食物 (當日作廢)</span>
+                </label>
+            </div>
+
+            <div class="bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
+                <label class="flex items-center gap-2 cursor-pointer mb-2">
+                    <input type="checkbox" id="on_train_toggle" class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50">
+                    <span class="text-sm font-bold text-slate-300">此物品是在車廂內拾獲</span>
+                </label>
+                <div id="train_details" class="hidden grid grid-cols-3 gap-3 mt-3">
+                    <select id="train_type" class="bg-[#0B1120] border border-darkborder text-slate-200 rounded-lg px-2 py-2 text-sm">
+                        <option value="選擇車種">選擇車種</option>
+                        <option value="自強號">自強號</option>
+                        <option value="區間車">區間車</option>
+                        <option value="普悠瑪">普悠瑪</option>
+                    </select>
+                    <input type="text" id="train_number" placeholder="車次 (例: 123)" class="bg-[#0B1120] border border-darkborder text-slate-200 rounded-lg px-2 py-2 text-sm">
+                    <div id="seat_details" class="hidden"><input type="text" id="seat_number" placeholder="座位 (例: 3車 5號)" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-lg px-2 py-2 text-sm"></div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-darkborder">
+                <button type="button" onclick="closeModal()" class="mr-3 px-6 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 font-bold transition">取消</button>
+                <button type="submit" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg transition">🚀 確認上傳登記</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- QR Scan Modal -->
+<div id="qrModalOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 modal-hidden transition-all duration-300 flex items-center justify-center p-4">
+    <div id="qrModalContent" class="bg-darkcard border border-darkborder rounded-3xl w-full max-w-md shadow-2xl modal-hidden scale-95 transition-all duration-300">
+        <div class="p-6 border-b border-darkborder flex justify-between items-center bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-t-3xl">
+            <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2"><span>📷</span> 掃描/更新儲位</h3>
+            <button onclick="toggleQRModal()" class="text-slate-500 hover:text-slate-300 text-2xl transition">&times;</button>
+        </div>
+        <form id="qrScanForm" class="p-6 space-y-5">
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">QR Code ID</label>
+                <input type="text" id="qrCodeId" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">目前車站</label>
+                <select id="qrStation" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none"></select>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">狀態更新</label>
+                <select id="qrStatus" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                    <option value="pending">保管中 (未領)</option>
+                    <option value="claimed">已領回 (結案)</option>
+                </select>
+            </div>
+            <div id="qrResult" class="text-sm text-center font-bold hidden py-2 rounded-lg"></div>
+            <button type="submit" id="qrSubmitBtn" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition">更新儲位資料</button>
+        </form>
+    </div>
+</div>

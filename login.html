@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>站務員登入 - 鐵道遺失物登記系統</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="/static/css/tailwind.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0B1120; color: #e2e8f0; }
+        .glass-card {
+            background: linear-gradient(145deg, rgba(17, 24, 39, 0.8), rgba(11, 17, 32, 0.9));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="h-screen flex items-center justify-center relative overflow-hidden selection:bg-blue-500/30">
+
+    <!-- Background glow -->
+    <div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="w-full max-w-md p-8 glass-card rounded-3xl z-10 relative">
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-3xl shadow-[0_0_15px_rgba(59,130,246,0.1)] mb-4">
+                🛤️
+            </div>
+            <h1 class="text-3xl font-bold text-slate-100 tracking-tight">系統後台登入</h1>
+            <p class="text-sm text-slate-400 mt-2">請輸入站務員專屬帳號密碼</p>
+        </div>
+
+        {% if error %}
+        <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
+            <span class="text-lg">⚠️</span>
+            <span class="font-bold">{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form action="/login" method="POST" class="space-y-6">
+            <div>
+                <label class="block text-sm font-bold text-slate-300 mb-2">👤 帳號 Username</label>
+                <input type="text" name="username" placeholder="請輸入帳號" required 
+                       class="w-full px-4 py-3.5 rounded-xl bg-[#0B1120] border border-darkborder focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-slate-200 placeholder-slate-600 transition-all shadow-inner">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-bold text-slate-300 mb-2">🔒 密碼 Password</label>
+                <input type="password" name="password" placeholder="請輸入密碼" required 
+                       class="w-full px-4 py-3.5 rounded-xl bg-[#0B1120] border border-darkborder focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-slate-200 placeholder-slate-600 transition-all shadow-inner">
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 px-4 rounded-xl shadow-[0_8px_20px_rgb(37,99,235,0.2)] hover:-translate-y-1 transition-all duration-300 border border-blue-500/30 mt-4 text-lg">
+                登入系統
+            </button>
+            
+            <div class="text-center mt-6">
+                <a href="/" class="text-sm text-slate-500 hover:text-blue-400 transition-colors flex items-center justify-center gap-2">
+                    <span>←</span> 返回前台首頁
+                </a>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

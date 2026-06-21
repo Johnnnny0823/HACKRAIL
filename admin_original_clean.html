@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>後台管理 - 鐵道遺失物登記系統</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        darkbg: '#0B1120',
+                        darkcard: '#111827',
+                        darkborder: '#1F2937',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0B1120; color:
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/[0.02] transition-colors group";
+                tr.innerHTML = `
+                    <td class="px-6 py-5">
+                        <input type="checkbox" class="item-checkbox w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50 cursor-pointer" value="${item.id}" onchange="updateBatchActionBar()">
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="flex items-center gap-4">
+                            <div class="relative w-14 h-14 rounded-xl overflow-hidden border border-slate-700 group-hover:border-slate-500 transition-colors">
+                                <img src="/uploads/${item.image_filename}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=No+Img'">
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-200 line-clamp-1 max-w-[200px]" title="${item.description}">${item.description}</p>
+                                <p class="text-xs text-slate-500 font-mono mt-1">ID_#${item.id.toString().padStart(4, '0')}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5">
+                        <span class="text-slate-400 bg-[#0B1120] px-3 py-1 rounded-lg border border-darkborder text-xs">${item.category}</span>
+                    </td>
+                    <td class="px-6 py-5">
+                        <p class="text-slate-300 font-semibold line-clamp-1 max-w-[150px] mb-1" title="${item.found_location}">${item.found_location}<

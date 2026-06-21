@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>後台管理 - 鐵道遺失物登記系統</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="/static/css/tailwind.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <!-- 引入全台車站資料庫 -->
+    <script src="/static/stations.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0B1120; color: #e2e8f0; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0B1120; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        .glow-card {
+            background: linear-gradient(145deg, #111827, #0B1120);
+            border: 1px solid #1F2937;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+        .glow-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        
+        /* Modal Transitions */
+        .modal-active { opacity: 1; pointer-events: auto; }
+        .modal-hidden { opacity: 0; pointer-events: none; }
+        .modal-content-active { transform: scale(1) translateY(0); opacity: 1; }
+        .modal-content-hidden { transform: scale(0.95) translateY(20px); opacity: 0; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden selection:bg-blue-500/30">
+
+    <!-- Background glow -->
+    <div class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-[#0B1120]/80 backdrop-blur-xl border-r border-darkborder flex flex-col transition-all duration-300 z-20 hidden md:flex relative">
+        <div class="p-6 flex items-center gap-3 border-b border-darkborder">
+            <span class="text-2xl drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">🛤️</span>
+            <h1 class="text-lg font-bold tracking-wider text-slate-100">管理後台</h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-3 overflow-y-auto mt-4">
+            <a href="#" id="navList" onclick="switchTab('list')" class="flex items-center gap-3 px-4 py-3.5 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] transition-all">
+                <span class="text-xl">📊</span>
+                <span class="font-bold tracking-wide">總覽儀表板</span>
+            </a>
+            <a href="#" id="navWishlist" onclick="switchTab('wishlist')" class="flex items-center gap-3 px-4 py-3.5 text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-xl transition-all group">
+                <span class="text-xl group-hover:scale-110 transition-transform">✨</span>
+                <span class="font-semibold tracking-wide">智慧許願池</span>
+            </a>
+            <a href="#" id="navDelivery" onclick="switchTab('delivery')" class="flex items-center gap-3 px-4 py-3.5 text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-xl transition-all group">
+                <span class="text-xl group-hover:scale-110 transition-transform">📦</span>
+                <span class="font-semibold tracking-wide">物流配送管理</span>
+            </a>
+            <a href="/" class="flex items-center gap-3 px-4 py-3.5 text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-xl transition-all group mt-8">
+                <span class="text-xl group-hover:scale-110 transition-transform">🏠</span>
+                <span class="font-semibold tracking-wide">前往前台</span>
+            </a>
+            <a href="/logout" class="flex items-center gap-3 px-4 py-3.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all group mt-auto">
+                <span class="text-xl group-hover:scale-110 transition-transform">🚪</span>
+                <span class="font-semibold tracking-wide">登出系統</span>
+            </a>
+        </nav>
+        <div class="p-5 border-t border-darkborder text-xs text-slate-500 font-medium">
+            <div class="flex items-center gap-2 mb-1">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+                <span>系統運作正常</span>
+            </div>
+            &copy; 2026 Lost & Found
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative z-10">
+        
+        <!-- Topbar -->
+        <header class="bg-[#0B1120]/80 backdrop-blur-md h-20 flex items-center justify-between px-8 z-10 border-b border-darkborder sticky top-0">
+            <div class="flex items-center gap-4">
+                <button class="md:hidden text-slate-400 hover:text-slate-200">
+                    <span class="text-2xl">☰</span>
+                </button>
+                <h2 class="text-2xl font-bold text-slate-100 tracking-tight">控制中心 <span class="text-slate-500 font-normal ml-2">/ Control Center</span></h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="px-3 py-1.5 rounded-lg bg-darkborder/50 border border-slate-700 text-xs font-mono text-slate-400 flex items-center gap-2 hidden md:flex">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                    Live Data
+                </div>
+                <button onclick="openModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2 px-4 rounded-xl shadow-[0_4px_15px_rgb(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgb(37,99,235,0.4)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 text-sm border border-blue-400/50">
+                    <span class="text-base">✨</span> 登記新遺失物
+                </button>
+                <div class="w-10 h-10 bg-gradient-to-tr from-slate-700 to-slate-800 text-slate-300 rounded-xl flex items-center justify-center font-bold border border-slate-600 relative group cursor-pointer">
+                    A
+                    <div class="absolute right-0 top-12 w-32 bg-darkcard border border-darkborder rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 overflow-hidden">
+                        <a href="/logout" class="block px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 font-bold flex items-center gap-2">
+                            <span>🚪</span> 登出系統
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div id="listSection" class="flex-1 overflow-y-auto p-6 lg:p-8">
+            
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glow-card rounded-2xl p-6 flex items-center gap-6 relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
+                    <div class="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-3xl shadow-[0_0_15px_rgba(59,130,246,0.1)]">📦</div>
+                    <div class="relative z-10">
+                        <p class="text-sm font-semibold text-slate-400 tracking-wide mb-1">總遺失物 TOTAL</p>
+                        <h3 class="text-4xl font-extrabold text-slate-100 neon-text" id="stat-total">0</h3>
+                    </div>
+                </div>
+                <div class="glow-card rounded-2xl p-6 flex items-center gap-6 relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all"></div>
+                    <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-3xl shadow-[0_0_15px_rgba(245,158,11,0.1)]">⏳</div>
+                    <div class="relative z-10">
+                        <p class="text-sm font-semibold text-slate-400 tracking-wide mb-1">未領取 PENDING</p>
+                        <h3 class="text-4xl font-extrabold text-slate-100" id="stat-pending">0</h3>
+                    </div>
+                </div>
+                <div class="glow-card rounded-2xl p-6 flex items-center gap-6 relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-3xl shadow-[0_0_15px_rgba(16,185,129,0.1)]">✅</div>
+                    <div class="relative z-10">
+                        <p class="text-sm font-semibold text-slate-400 tracking-wide mb-1">已結案 CLAIMED</p>
+                        <h3 class="text-4xl font-extrabold text-slate-100" id="stat-claimed">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Correction Summary -->
+            <div class="glow-card rounded-2xl p-6 mb-8">
+                <h3 class="text-sm font-bold text-slate-300 mb-3 flex items-center gap-2">🤖 AI 辨識校正統計 <span class="text-xs text-slate-500 font-normal">（站務人員修正 AI 結果的次數，可用於優化辨識邏輯）</span></h3>
+                <div id="aiCorrectionSummary" class="flex flex-wrap gap-3 text-xs text-slate-400">載入中...</div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden shadow-2xl relative">
+                <div class="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none"></div>
+                <div class="p-6 border-b border-darkborder flex flex-col sm:flex-row justify-between items-center gap-4 relative z-10">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-xl font-black text-white flex items-center gap-3">
+                            📋 現有遺失物管理
+                            <span id="totalCount" class="text-sm font-bold bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">載入中...</span>
+                        </h2>
+                    </div>
+                    
+                    <!-- Batch Action Bar -->
+                    <div id="batchActionBar" class="hidden items-center gap-3 bg-blue-500/10 border border-blue-500/30 p-3 rounded-xl">
+                        <span class="text-sm font-bold text-blue-400" id="selectedCountText">已選擇 0 項</span>
+                        <div class="flex-1"></div>
+                        <button onclick="batchUpdateStatus('claimed')" class="bg-emerald-500 hover:bg-emerald-400 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition">✅ 標記已領回</button>
+                        <button onclick="batchDelete()" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-1.5 rounded-lg text-sm font-bold transition">🗑️ 批次刪除</button>
+                    </div>
+
+                    <div class="flex items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
+                        <button onclick="toggleQRModal()" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-[0_4px_15px_rgb(168,85,247,0.3)] hover:shadow-[0_6px_20px_rgb(168,85,247,0.4)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 text-sm border border-purple-400/50">
+                            <span>📷</span> 掃描/更新儲位
+                        </button>
+                        <div class="relative w-full sm:w-72">
+                            <input type="text" id="searchInput" placeholder="搜尋關鍵字..." class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-[#0B1120] border border-darkborder focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm text-slate-200 placeholder-slate-500 transition-all shadow-inner">
+                            <span class="absolute left-4 top-3 text-slate-500">🔍</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto relative z-10">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-[#0B1120]/50 text-slate-400 text-xs uppercase tracking-widest border-b border-darkborder font-bold">
+                                <th class="px-6 py-4 font-bold text-slate-400 text-sm w-12">
+                                    <input type="checkbox" id="selectAllCheckbox" class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50 cursor-pointer">
+                                </th>
+                                <th class="px-6 py-5">圖片 / 描述</th>
+                                <th class="px-6 py-5">類別</th>
+                                <th class="px-6 py-5">拾獲地點 / 時間</th>
+                                <th class="px-6 py-5">狀態</th>
+                                <th class="px-6 py-5 text-right">控制項</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminItemsList" class="divide-y divide-darkborder text-sm font-medium">
+                            <tr>
+                                <td colspan="6" class="px-6 py-16 text-center text-slate-500">
+                                    <div class="animate-pulse flex flex-col items-center">
+                                        <div class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                                        系統連線中...
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Wishlist Section -->
+        <div id="wishlistSection" class="hidden flex-1 overflow-y-auto p-6 lg:p-8">
+          <div class="glass-card p-6 sm:p-8 rounded-3xl animate-fade-in-up">
+            <h2 class="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3 tracking-tight">
+                <span>✨</span> 智慧許願池管理
+            </h2>
+            
+            <div class="overflow-x-auto bg-[#0B1120]/50 rounded-2xl border border-darkborder">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead class="sticky top-0 z-10">
+                        <tr class="border-b border-slate-700 bg-[#0B1120] text-slate-300 text-sm">
+                            <th class="py-4 px-4 font-bold rounded-tl-2xl">申請時間</th>
+                            <th class="py-4 px-4 font-bold">聯絡人</th>
+                            <th class="py-4 px-4 font-bold">遺失物品/特徵</th>
+                            <th class="py-4 px-4 font-bold">遺失地點</th>
+                            <th class="py-4 px-4 font-bold">狀態</th>
+                            <th class="py-4 px-4 font-bold rounded-tr-2xl text-right">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="wishlistTableBody" class="text-sm divide-y divide-slate-800/50">
+                        <tr><td colspan="6" class="py-8 text-center text-slate-500 font-bold">載入中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delivery Section -->
+        <div id="deliverySection" class="hidden flex-1 overflow-y-auto p-6 lg:p-8">
+          <div class="glass-card p-6 sm:p-8 rounded-3xl animate-fade-in-up">
+            <h2 class="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-3 tracking-tight">
+                <span>📦</span> 物流配送管理
+            </h2>
+
+            <!-- Delivery Rules Settings -->
+            <div class="mb-6 bg-[#0B1120]/50 rounded-2xl border border-darkborder p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2">⚙️ 配送限制規則設定</h3>
+                    <button onclick="toggleAddRuleForm()" class="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold px-3 py-1.5 rounded-lg transition border border-blue-500/30">+ 新增規則</button>
+                </div>
+                <div id="addRuleForm" class="hidden grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 p-3 bg-black/20 rounded-xl">
+                    <input type="text" id="ruleKeyword" placeholder="分類關鍵字 (例: 3C)" class="bg-[#0B1120] border border-darkborder text-slate-200 rounded-lg px-3 py-2 text-sm sm:col-span-2">
+                    <select id="ruleAllowed" class="bg-[#0B1120] border border-darkborder text-slate-200 rounded-lg px-3 py-2 text-sm">
+                        <option value="false">不允許配送</option>
+                        <option value="true">允許配送</option>
+                    </select>
+                    <input type="text" id="ruleReason" placeholder="限制原因說明" class="bg-[#0B1120] border border-darkborder text-slate-200 rounded-lg px-3 py-2 text-sm sm:col-span-4">
+                    <button onclick="submitNewRule()" class="sm:col-span-4 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg text-sm transition">儲存規則</button>
+                </div>
+                <div id="deliveryRulesList" class="space-y-2">載入中...</div>
+            </div>
+
+            <div class="overflow-x-auto bg-[#0B1120]/50 rounded-2xl border border-darkborder">
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead class="sticky top-0 z-10">
+                        <tr class="border-b border-slate-700 bg-[#0B1120] text-slate-300 text-sm">
+                            <th class="py-4 px-4 font-bold rounded-tl-2xl w-16">照片</th>
+                            <th class="py-4 px-4 font-bold">顧客 / 特徵驗證</th>
+                            <th class="py-4 px-4 font-bold">目標車站</th>
+                            <th class="py-4 px-4 font-bold">狀態</th>
+                            <th class="py-4 px-4 font-bold rounded-tr-2xl text-right">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deliveryTableBody" class="text-sm divide-y divide-slate-800/50">
+                        <tr><td colspan="5" class="py-8 text-center text-slate-500 font-bold">載入中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+          </div>
+        </div>
+
+    <!-- Add Item Modal -->
+<div id="modalOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 modal-hidden transition-all duration-200 flex items-center justify-center p-4">
+    <div id="addModalContent" class="bg-darkcard border border-darkborder rounded-3xl w-full max-w-2xl shadow-2xl modal-content-hidden transition-all duration-200 max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-darkborder flex justify-between items-center sticky top-0 bg-darkcard/95 backdrop-blur z-10">
+            <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">✨ 登記新遺失物</h3>
+            <button onclick="closeModal()" class="text-slate-500 hover:text-slate-300 text-2xl transition">&times;</button>
+        </div>
+        <form id="lostItemForm" class="p-6 space-y-5">
+            <!-- 圖片上傳區 -->
+            <div>
+                <div id="imageInputContainer">
+                    <label class="block text-sm font-bold text-slate-400 mb-2">上傳主要照片 <span class="text-red-500">*</span></label>
+                    <input type="file" id="image" accept="image/*" class="w-full text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500/20 file:text-blue-400 hover:file:bg-blue-500/30 transition border border-darkborder p-2 rounded-xl" required>
+                </div>
+                
+                <div id="cropperContainer" class="hidden mt-4 bg-black/30 rounded-xl overflow-hidden border border-slate-700">
+                    <div style="height: 300px;"><img id="imagePreview" src="" class="max-w-full"></div>
+                </div>
+                <div id="cropActions" class="hidden mt-3 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnCropAnalyze" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 shadow-lg">✅ 裁切並 AI 辨識</button>
+                        <button type="button" id="btnChangeImage" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-xl text-sm font-bold transition shadow-lg">🔄 重新選擇照片</button>
+                    </div>
+                    <span id="ai_status" class="hidden text-xs px-2 py-1 rounded"></span>
+                </div>
+                <div id="aiWarningHint" class="hidden mt-3 text-xs bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-3 py-2"></div>
+            </div>
+
+            <!-- 附加照片 -->
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">附加細節照片 (選填)</label>
+                <input type="file" id="additional_images" accept="image/*" multiple class="w-full text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-slate-300 hover:file:bg-slate-600 transition border border-darkborder p-2 rounded-xl">
+                <div id="additionalPreviews" class="flex flex-wrap gap-2 mt-3"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-2">物品類別 <span class="text-red-500">*</span></label>
+                    <select id="category" onchange="renderAIWarningHint()" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                        <option value="現金">現金</option>
+                        <option value="3C">3C</option>
+                        <option value="證件">證件</option>
+                        <option value="一般物品">一般物品</option>
+                        <option value="貴重品">貴重品</option>
+                        <option value="其他特殊物品">其他特殊物品</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-2">物品名稱 <span class="text-red-500">*</span></label>
+                    <input type="text" id="item_name" placeholder="例如：皮夾、ipad、悠遊卡" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-2">發現地點 <span class="text-red-500">*</span></label>
+                    <div class="flex gap-2">
+                        <select id="station" class="w-1/2 bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-2 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"></select>
+                        <input type="text" id="platform" placeholder="月台/大廳" class="w-1/2 bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-2 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <button type="button" id="gpsBtn" onclick="getLocation()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-[0_4px_15px_rgb(16,185,129,0.3)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 text-sm border border-emerald-400/50 whitespace-nowrap"><span>📍</span> 定位</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-2">保管單位 <span class="text-red-500">*</span></label>
+                    <input type="text" id="custodian_unit" placeholder="例如：員林、新左營" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-2">服務電話</label>
+                    <input type="text" id="service_phone" placeholder="例如：04-8320544" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-2">車站代碼 (選填)</label>
+                    <input type="text" id="station_code" placeholder="例如：3390" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">物品特徵描述 <span class="text-red-500">*</span></label>
+                <textarea id="description" rows="2" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none placeholder-slate-600" placeholder="例如：黑色 iPhone 13，有犀牛盾手機殼..." required></textarea>
+
+                <label class="flex items-center gap-2 mt-3 cursor-pointer">
+                    <input type="checkbox" id="is_perishable" class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50">
+                    <span class="text-sm font-bold text-amber-400">⚠️ 標記為易腐壞/食物 (當日作廢)</span>
+                </label>
+            </div>
+
+            <div class="bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
+                <label class="flex items-center gap-2 cursor-pointer mb-2">
+                    <input type="checkbox" id="on_train_toggle" class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50">
+                    <span class="text-sm font-bold text-slate-300">此物品是在車廂內拾獲（車上 車次）</span>
+                </label>
+                <div id="train_details" class="hidden grid grid-cols-3 gap-3 mt-3">
+                    <select id="train_type" class="bg-[#0B1120] border border-darkborder text-slate-200 rounded-lg px-2 py-2 text-sm">
+                        <option value="選擇車種">選擇車種</option>
+                        <option value="自強號">自強號</option>
+                        <option value="區間車">區間車</option>
+                        <option value="普悠瑪">普悠瑪</option>
+                    </select>
+                    <input type="text" id="train_number" placeholder="車次 (例: 123)" class="bg-[#0B1120] border border-darkborder text-slate-200 rounded-lg px-2 py-2 text-sm">
+                    <div id="seat_details" class="hidden"><input type="text" id="seat_number" placeholder="座位 (例: 3車 5號)" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-lg px-2 py-2 text-sm"></div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-darkborder">
+                <button type="button" onclick="closeModal()" class="mr-3 px-6 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 font-bold transition">取消</button>
+                <button type="submit" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg transition">🚀 確認上傳登記</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- QR Scan Modal -->
+<div id="qrModalOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 modal-hidden transition-all duration-200 flex items-center justify-center p-4">
+    <div id="qrModalContent" class="bg-darkcard border border-darkborder rounded-3xl w-full max-w-md shadow-2xl modal-hidden scale-95 transition-all duration-200">
+        <div class="p-6 border-b border-darkborder flex justify-between items-center bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-t-3xl">
+            <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2"><span>📷</span> 掃描/更新儲位</h3>
+            <button onclick="toggleQRModal()" class="text-slate-500 hover:text-slate-300 text-2xl transition">&times;</button>
+        </div>
+        <form id="qrScanForm" onsubmit="submitQRScan(event)" class="p-6 space-y-5">
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">QR Code ID</label>
+                <input type="text" id="qrCodeId" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">目前車站</label>
+                <select id="qrStation" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none"></select>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-400 mb-2">狀態更新</label>
+                <select id="qrStatus" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                    <option value="pending">保管中 (未領)</option>
+                    <option value="claimed">已領回 (結案)</option>
+                </select>
+            </div>
+            <div id="qrResult" class="text-sm text-center font-bold hidden py-2 rounded-lg"></div>
+            <button type="submit" id="qrSubmitBtn" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition">更新儲位資料</button>
+        </form>
+    </div>
+</div>
+
+<!-- Sensitive Info Modal -->
+<div id="sensitiveModalOverlay" onclick="closeSensitiveModal(event)" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] modal-hidden transition-all duration-200 flex items-center justify-center p-4">
+    <div id="sensitiveModalContent" class="bg-darkcard border border-darkborder rounded-3xl w-full max-w-md shadow-2xl modal-hidden scale-95 transition-all duration-200 max-h-[90vh] overflow-y-auto">
+        <div class="p-5 border-b border-darkborder flex justify-between items-center sticky top-0 bg-darkcard/95 backdrop-blur z-10 bg-gradient-to-r from-amber-900/20 to-red-900/20">
+            <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">🔒 敏感物品完整資訊</h3>
+            <button onclick="closeSensitiveModal(event)" class="text-slate-500 hover:text-slate-300 text-2xl transition">&times;</button>
+        </div>
+        <div class="p-5 space-y-4">
+            <p class="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">每次查看完整資訊都會被記錄，包含查看人員與時間。</p>
+            <div id="sensitiveModalBody" class="space-y-2 text-sm text-slate-300">載入中...</div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">查看紀錄</h4>
+                <div id="sensitiveAccessLogs" class="space-y-1 text-xs text-slate-400 max-h-40 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Photo Preview Modal -->
+<div id="photoModalOverlay" onclick="closePhotoModal(event)" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] modal-hidden transition-all duration-200 flex items-center justify-center p-4">
+    <div id="photoModalContent" class="bg-darkcard border border-darkborder rounded-3xl w-full max-w-3xl shadow-2xl modal-hidden scale-95 transition-all duration-200 max-h-[90vh] overflow-y-auto">
+        <div class="p-5 border-b border-darkborder flex justify-between items-center sticky top-0 bg-darkcard/95 backdrop-blur z-10">
+            <h3 id="photoModalTitle" class="text-lg font-bold text-slate-100 line-clamp-1"></h3>
+            <button onclick="closePhotoModal(event)" class="text-slate-500 hover:text-slate-300 text-2xl transition">&times;</button>
+        </div>
+        <div class="p-5">
+            <img id="photoModalMainImg" src="" class="w-full max-h-[60vh] object-contain rounded-2xl bg-black/30">
+            <div id="photoModalThumbs" class="flex flex-wrap gap-2 mt-4"></div>
+            <p id="photoModalMeta" class="text-sm text-slate-400 mt-4"></p>
+        </div>
+    </div>
+</div>
+
+    </main>
+
+    <script>
+        let allItems = [];
+
+        function switchTab(tab) {
+            document.getElementById('listSection').classList.add('hidden');
+            document.getElementById('wishlistSection').classList.add('hidden');
+            document.getElementById('deliverySection').classList.add('hidden');
+            
+            document.getElementById('navList').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('navList').classList.add('text-slate-400');
+            document.getElementById('navWishlist').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('navWishlist').classList.add('text-slate-400');
+            document.getElementById('navDelivery').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('navDelivery').classList.add('text-slate-400');
+            
+            document.getElementById(tab + 'Section').classList.remove('hidden');
+            const activeNav = document.getElementById('nav' + tab.charAt(0).toUpperCase() + tab.slice(1));
+            activeNav.classList.remove('text-slate-400');
+            activeNav.classList.add('bg-blue-600', 'text-white');
+
+            if (tab === 'list') fetchAdminItems();
+            if (tab === 'delivery') { fetchDeliveries(); fetchDeliveryRules(); }
+            if (tab === 'wishlist') fetchWishlist();
+        }
+
+        // Populate stations select on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const stationSelect = document.getElementById('station');
+            if (typeof stationsDB !== 'undefined') {
+                populateStationSelect(stationSelect, true);
+            }
+        });
+
+        // 按 Esc 鍵關閉目前開啟中的視窗（新增物品、QR 掃描、授權資訊、照片放大）
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            const modalCloseMap = {
+                'modalOverlay': closeModal,
+                'qrModalOverlay': toggleQRModal,
+                'sensitiveModalOverlay': closeSensitiveModal,
+                'photoModalOverlay': closePhotoModal,
+            };
+            for (const [overlayId, closeFn] of Object.entries(modalCloseMap)) {
+                const overlay = document.getElementById(overlayId);
+                if (overlay && overlay.classList.contains('modal-active')) {
+                    closeFn();
+                    break;
+                }
+            }
+        });
+
+        // ======= Delivery Rules Logic =======
+        function toggleAddRuleForm() {
+            document.getElementById('addRuleForm').classList.toggle('hidden');
+        }
+
+        async function fetchDeliveryRules() {
+            const box = document.getElementById('deliveryRulesList');
+            try {
+                const res = await fetch('/api/admin/delivery-rules');
+                const rules = await res.json();
+                if (rules.length === 0) {
+                    box.innerHTML = '<p class="text-xs text-slate-500">尚無自訂規則</p>';
+                    return;
+                }
+                box.innerHTML = rules.map(r => `
+                    <div class="flex items-center justify-between gap-3 bg-[#0B1120] px-4 py-2.5 rounded-lg border border-darkborder text-sm">
+                        <div class="flex items-center gap-3 flex-1">
+                            <span class="font-bold text-slate-200">${r.category_keyword}</span>
+                            ${r.allowed
+                                ? '<span class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">允許配送</span>'
+                                : '<span class="text-xs bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">不允許配送</span>'}
+                            <span class="text-xs text-slate-500 truncate">${r.reason || ''}</span>
+                        </div>
+                        <button onclick="deleteDeliveryRule(${r.id})" class="text-xs text-red-400 hover:text-red-300 font-bold px-2 py-1">刪除</button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                box.innerHTML = '<p class="text-xs text-red-400">載入失敗</p>';
+            }
+        }
+
+        async function submitNewRule() {
+            const category_keyword = document.getElementById('ruleKeyword').value.trim();
+            if (!category_keyword) { alert('請輸入分類關鍵字'); return; }
+            const allowed = document.getElementById('ruleAllowed').value === 'true';
+            const reason = document.getElementById('ruleReason').value.trim();
+            try {
+                const res = await fetch('/api/admin/delivery-rules', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category_keyword, allowed, reason })
+                });
+                if (res.ok) {
+                    document.getElementById('ruleKeyword').value = '';
+                    document.getElementById('ruleReason').value = '';
+                    toggleAddRuleForm();
+                    fetchDeliveryRules();
+                } else {
+                    alert('新增失敗，請確認關鍵字是否重複');
+                }
+            } catch (e) {
+                alert('發生錯誤');
+            }
+        }
+
+        async function deleteDeliveryRule(id) {
+            if (!confirm('確認刪除此規則？')) return;
+            await fetch(`/api/admin/delivery-rules/${id}`, { method: 'DELETE' });
+            fetchDeliveryRules();
+        }
+
+        // ======= Delivery Logistics Logic =======
+        async function fetchDeliveries() {
+            try {
+                const res = await fetch('/api/admin/deliveries');
+                const data = await res.json();
+                const tbody = document.getElementById('deliveryTableBody');
+                tbody.innerHTML = '';
+                if(data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-slate-500 font-bold">目前沒有任何配送申請</td></tr>';
+                    return;
+                }
+                let rowsHTML = '';
+                data.forEach(d => {
+                    const isVerified = !!d.verified_by;
+                    const statusMap = {
+                        'pending': '<span class="px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 rounded-lg text-xs font-bold">審核中</span>',
+                        'delivering': '<span class="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg text-xs font-bold">🚚 配送中</span>',
+                        'arrived': isVerified
+                            ? '<span class="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-xs font-bold">✅ 已核對領取</span>'
+                            : '<span class="px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg text-xs font-bold">📦 已送達，待核對領取</span>'
+                    };
+
+                    let actions = '';
+                    if(d.status === 'pending') {
+                        actions = `<button onclick="updateDeliveryStatus(${d.id}, 'delivering')" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-sm hover:-translate-y-0.5">🚚 開始配送</button>`;
+                    } else if (d.status === 'delivering') {
+                        actions = `<button onclick="updateDeliveryStatus(${d.id}, 'arrived')" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition shadow-sm hover:-translate-y-0.5">✅ 送達並通知</button>`;
+                    } else if (d.status === 'arrived' && !isVerified) {
+                        actions = `<button onclick="verifyDeliveryPickup(${d.id})" class="px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl text-xs font-bold transition shadow-sm hover:-translate-y-0.5">🔎 核對驗證描述並結案</button>`;
+                    } else {
+                        actions = '<span class="text-xs text-slate-500 font-bold">完成</span>';
+                    }
+                    const canCancel = d.status === 'pending' || d.status === 'delivering';
+                    if (canCancel) {
+                        actions += ` <button onclick="cancelDeliveryRequest(${d.id})" class="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-bold transition border border-red-500/20">取消申請</button>`;
+                    }
+
+                    rowsHTML += `
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td class="py-4 px-4">
+                                <div onclick="openPhotoModal(${d.item_id})" class="w-14 h-14 rounded-xl overflow-hidden border border-slate-700/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-blue-500/50 transition-all">
+                                    <img src="/uploads/${d.item_img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/56'">
+                                </div>
+                            </td>
+                            <td class="py-4 px-4">
+                                <div class="font-bold text-slate-200">${d.customer_name} <span class="text-xs text-slate-400 ml-1">${d.customer_phone}</span></div>
+                                <div class="grid grid-cols-2 gap-2 mt-1.5 max-w-md">
+                                    <div class="text-xs bg-slate-700/30 border border-slate-600/30 px-2 py-1.5 rounded-md">
+                                        <span class="font-bold text-slate-400 block mb-0.5">物品原始描述</span>
+                                        <span class="text-slate-300">${d.item_desc}</span>
+                                    </div>
+                                    <div class="text-xs bg-amber-400/10 border border-amber-400/20 px-2 py-1.5 rounded-md">
+                                        <span class="font-bold text-amber-400 block mb-0.5">旅客驗證描述</span>
+                                        <span class="text-amber-200">${d.proof_description}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-4 px-4 font-bold text-slate-300 text-base">${d.target_station}</td>
+                            <td class="py-4 px-4">${statusMap[d.status] || d.status}</td>
+                            <td class="py-4 px-4 text-right">${actions}</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = rowsHTML;
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        async function updateDeliveryStatus(id, status) {
+            try {
+                const res = await fetch(`/api/admin/deliveries/${id}/status`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status})
+                });
+                if(res.ok) {
+                    if (status === 'arrived') {
+                        alert('狀態已更新！\n系統已自動發送取件通知信給失主。');
+                    } else {
+                        alert('已更新狀態為：配送中');
+                    }
+                    fetchDeliveries();
+                } else {
+                    const err = await res.json().catch(() => null);
+                    alert(err && err.detail ? err.detail : '更新失敗，請重試。');
+                }
+            } catch(e) {
+                console.error(e);
+                alert('發生錯誤');
+            }
+        }
+
+        async function cancelDeliveryRequest(id) {
+            if (!confirm('確認取消這筆配送申請？\n（用於清除重複或已過期的申請，不會影響物品本身的狀態）')) return;
+            try {
+                const res = await fetch(`/api/admin/deliveries/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('已取消此筆申請。');
+                    fetchDeliveries();
+                } else {
+                    alert('取消失敗，請重試。');
+                }
+            } catch(e) {
+                console.error(e);
+                alert('發生錯誤');
+            }
+        }
+
+        async function verifyDeliveryPickup(id) {
+            if (!confirm('請確認已當面核對旅客填寫的「驗證描述」與本人領取資料，確認無誤後才結案。\n\n是否核對完成並標記為已領回？')) return;
+            try {
+                const res = await fetch(`/api/admin/deliveries/${id}/verify-pickup`, { method: 'PUT' });
+                if (res.ok) {
+                    alert('已核對完成，物品標記為已領回。');
+                    fetchDeliveries();
+                    fetchAdminItems();
+                } else {
+                    const err = await res.json().catch(() => null);
+                    alert(err && err.detail ? err.detail : '核對失敗，請重試。');
+                }
+            } catch(e) {
+                console.error(e);
+                alert('發生錯誤');
+            }
+        }
+
+        // Fetch Items
+        async function fetchAdminItems() {
+            try {
+                const response = await fetch('/api/items');
+                allItems = await response.json();
+                renderTable(allItems);
+                updateStats(allItems);
+                fetchAICorrectionSummary();
+            } catch (error) {
+                console.error("Failed to fetch items:", error);
+            }
+        }
+
+        let aiWarningFields = [];
+        let aiByCategory = [];
+
+        async function fetchAICorrectionSummary() {
+            const box = document.getElementById('aiCorrectionSummary');
+            if (!box) return;
+            try {
+                const res = await fetch('/api/admin/ai-corrections/summary');
+                const data = await res.json();
+                const summary = data.counts || {};
+                aiWarningFields = data.warning_fields || [];
+                aiByCategory = data.by_category || [];
+                const fieldLabels = { description: '描述', item_name: '物品名稱', category: '分類', tags: '標籤', colors: '顏色' };
+                const entries = Object.entries(summary);
+                let html = entries.length === 0
+                    ? '<span class="text-slate-500">尚無修正紀錄</span>'
+                    : entries.map(([field, count]) => {
+                        const isWarning = aiWarningFields.includes(field);
+                        const badgeClass = isWarning ? 'bg-red-500/10 border-red-500/30' : 'bg-[#0B1120] border-darkborder';
+                        return `<span class="${badgeClass} px-3 py-1.5 rounded-lg border"><span class="text-slate-300 font-bold">${fieldLabels[field] || field}</span> 被修正 <span class="text-amber-400 font-bold">${count}</span> 次${isWarning ? ' ⚠️' : ''}</span>`;
+                    }).join('');
+                const categoryWarnings = aiByCategory.filter(c => c.is_warning);
+                if (categoryWarnings.length > 0) {
+                    html += '<div class="w-full mt-2 pt-2 border-t border-darkborder flex flex-wrap gap-2">' +
+                        categoryWarnings.map(c => `<span class="bg-red-500/10 border-red-500/30 px-3 py-1.5 rounded-lg border text-xs"><span class="text-slate-300 font-bold">${c.category}</span> 的 <span class="text-slate-300 font-bold">${fieldLabels[c.field_name] || c.field_name}</span> 修正率 <span class="text-red-400 font-bold">${Math.round(c.rate * 100)}%</span> ⚠️</span>`).join('') +
+                        '</div>';
+                }
+                box.innerHTML = html;
+                renderAIWarningHint();
+            } catch (e) {
+                box.innerHTML = '<span class="text-red-400">載入失敗</span>';
+            }
+        }
+
+        function renderAIWarningHint() {
+            const hintBox = document.getElementById('aiWarningHint');
+            if (!hintBox) return;
+            const fieldLabels = { description: '描述', category: '分類', tags: '標籤', colors: '顏色' };
+            const selectedCategory = document.getElementById('category') ? document.getElementById('category').value : null;
+            const categoryWarnings = selectedCategory ? aiByCategory.filter(c => c.is_warning && c.category === selectedCategory) : [];
+            if (categoryWarnings.length > 0) {
+                const labels = categoryWarnings.map(c => `${fieldLabels[c.field_name] || c.field_name}（${Math.round(c.rate * 100)}%）`).join('、');
+                hintBox.innerHTML = `⚠️ 在「${selectedCategory}」分類中，「${labels}」過去常被人工修正，請仔細檢查 AI 自動填入的內容是否正確。`;
+                hintBox.classList.remove('hidden');
+                return;
+            }
+            if (aiWarningFields.length === 0) {
+                hintBox.classList.add('hidden');
+                return;
+            }
+            const labels = aiWarningFields.map(f => fieldLabels[f] || f).join('、');
+            hintBox.innerHTML = `⚠️ AI 辨識的「${labels}」欄位過去常被人工修正，請仔細檢查 AI 自動填入的內容是否正確。`;
+            hintBox.classList.remove('hidden');
+        }
+
+        // Render Table
+        function renderTable(items) {
+            const list = document.getElementById('adminItemsList');
+            list.innerHTML = '';
+            
+            if (items.length === 0) {
+                list.innerHTML = `<tr><td colspan="6" class="px-6 py-16 text-center text-slate-500 tracking-widest font-mono">NO DATA FOUND</td></tr>`;
+                return;
+            }
+
+            items.forEach(item => {
+                const dateObj = new Date(item.found_time);
+                const dateStr = dateObj.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                
+                const status = item.status || 'pending';
+                const statusBadgeMap = {
+                    'pending': `<span class="inline-flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_5px_rgba(245,158,11,0.8)] animate-pulse"></span>PENDING</span>`,
+                    'delivering': `<span class="inline-flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>DELIVERING</span>`,
+                    'arrived': `<span class="inline-flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold bg-teal-500/10 text-teal-400 border border-teal-500/20"><span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span>ARRIVED</span>`,
+                    'claimed': `<span class="inline-flex items-center gap-2 py-1.5 px-3 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>CLAIMED</span>`
+                };
+                const statusBadge = statusBadgeMap[status] || statusBadgeMap['pending'];
+
+                const actionBtn = status === 'claimed'
+                    ? `<button onclick="updateStatus(${item.id}, 'pending')" class="text-amber-400 hover:text-white font-bold px-3 py-1.5 rounded-lg border border-amber-500/30 hover:bg-amber-500 hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all uppercase text-xs tracking-wider">退回未領</button>`
+                    : `<button onclick="updateStatus(${item.id}, 'claimed')" class="text-blue-400 hover:text-white font-bold px-3 py-1.5 rounded-lg border border-blue-500/30 hover:bg-blue-500 hover:shadow-[0_0_15px_rgba(59,130,246,0.4)] transition-all uppercase text-xs tracking-wider">標記結案</button>`;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/[0.02] transition-colors group";
+                tr.innerHTML = `
+                    <td class="px-6 py-5">
+                        <input type="checkbox" class="item-checkbox w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50 cursor-pointer" value="${item.id}" onchange="updateBatchActionBar()">
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="flex items-center gap-4">
+                            <div onclick="openPhotoModal(${item.id})" class="relative w-14 h-14 rounded-xl overflow-hidden border border-slate-700 group-hover:border-slate-500 transition-colors cursor-pointer hover:ring-2 hover:ring-blue-500/50">
+                                <img src="/uploads/${item.image_filename}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=No+Img'">
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-200 line-clamp-1 max-w-[200px]" title="${item.description}">${item.item_name || item.description}</p>
+                                <p class="text-xs text-slate-400 line-clamp-1 max-w-[200px]" title="${item.description}">${item.description}</p>
+                                <p class="text-xs text-slate-500 font-mono mt-1">${item.item_code ? item.item_code : 'ID_#' + item.id.toString().padStart(4, '0')} ${item.qr_code_id ? '| QR: ' + item.qr_code_id.substring(0,8) : ''}</p>
+                                ${item.is_sensitive ? `<span class="text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded border border-red-500/30">含個資</span> <button onclick="event.stopPropagation(); openSensitiveModal(${item.id})" class="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/30 hover:bg-amber-500/30 transition">🔒 查看完整資訊</button>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5">
+                        <span class="text-slate-400 bg-[#0B1120] px-3 py-1 rounded-lg border border-darkborder text-xs">${item.category}</span>
+                    </td>
+                    <td class="px-6 py-5">
+                        <p class="text-slate-300 font-semibold line-clamp-1 max-w-[150px] mb-1" title="${item.found_location}">${item.found_location}</p>
+                        <p class="text-xs text-slate-500 font-mono">${dateStr}</p>
+                        ${item.custodian_unit ? `<p class="text-xs text-slate-500 mt-0.5">保管：${item.custodian_unit}${item.service_phone ? ' ' + item.service_phone : ''}</p>` : ''}
+                    </td>
+                    <td class="px-6 py-5">
+                        ${statusBadge}
+                    </td>
+                    <td class="px-6 py-5 text-right space-x-2 whitespace-nowrap">
+                        ${actionBtn}
+                        <button onclick="deleteItem(${item.id})" class="text-red-400 hover:text-white font-bold px-3 py-1.5 rounded-lg border border-red-500/30 hover:bg-red-500 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all uppercase text-xs tracking-wider">刪除</button>
+                    </td>
+                `;
+                list.appendChild(tr);
+            });
+        }
+
+        function openPhotoModal(id) {
+            const item = allItems.find(i => i.id === id);
+            if (!item) return;
+
+            const images = [item.image_filename];
+            if (item.additional_images) {
+                item.additional_images.split(',').forEach(f => { if (f.trim()) images.push(f.trim()); });
+            }
+
+            document.getElementById('photoModalTitle').innerText = item.description;
+            document.getElementById('photoModalMainImg').src = `/uploads/${images[0]}`;
+
+            const dateStr = new Date(item.found_time).toLocaleString('zh-TW');
+            document.getElementById('photoModalMeta').innerText = `分類：${item.category} ｜ 地點：${item.found_location} ｜ 時間：${dateStr}`;
+
+            const thumbs = document.getElementById('photoModalThumbs');
+            thumbs.innerHTML = '';
+            if (images.length > 1) {
+                images.forEach(filename => {
+                    const thumb = document.createElement('img');
+                    thumb.src = `/uploads/${filename}`;
+                    thumb.className = 'w-16 h-16 object-cover rounded-lg border border-slate-700 cursor-pointer hover:ring-2 hover:ring-blue-500/50';
+                    thumb.onclick = () => { document.getElementById('photoModalMainImg').src = `/uploads/${filename}`; };
+                    thumbs.appendChild(thumb);
+                });
+            }
+
+            loadTransferLogs(id);
+
+            const overlay = document.getElementById('photoModalOverlay');
+            const content = document.getElementById('photoModalContent');
+            overlay.classList.remove('modal-hidden');
+            overlay.classList.add('modal-active');
+            setTimeout(() => {
+                content.classList.remove('modal-hidden', 'scale-95');
+                content.classList.add('modal-active', 'scale-100');
+            }, 10);
+        }
+
+        async function loadTransferLogs(itemId) {
+            const meta = document.getElementById('photoModalMeta');
+            const existingTimeline = document.getElementById('transferLogTimeline');
+            if (existingTimeline) existingTimeline.remove();
+
+            const timeline = document.createElement('div');
+            timeline.id = 'transferLogTimeline';
+            timeline.className = 'mt-4 border-t border-darkborder pt-4';
+            timeline.innerHTML = '<h4 class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">📍 移動軌跡</h4><p class="text-xs text-slate-500">載入中...</p>';
+            meta.parentElement.appendChild(timeline);
+
+            try {
+                const res = await fetch(`/api/admin/items/${itemId}/transfer-logs`);
+                const logs = await res.json();
+                if (logs.length === 0) {
+                    timeline.innerHTML = '<h4 class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">📍 移動軌跡</h4><p class="text-xs text-slate-500">尚無紀錄</p>';
+                    return;
+                }
+                let html = '<h4 class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">📍 移動軌跡</h4><div class="space-y-2">';
+                logs.forEach(log => {
+                    const t = new Date(log.created_at).toLocaleString('zh-TW');
+                    html += `<div class="flex items-center gap-2 text-xs text-slate-400 bg-[#0B1120]/50 px-3 py-2 rounded-lg border border-darkborder">
+                        <span class="font-mono text-slate-500">${t}</span>
+                        <span class="text-slate-300 font-bold">${log.station || '-'}</span>
+                        ${log.status ? `<span class="text-blue-400">(${log.status})</span>` : ''}
+                    </div>`;
+                });
+                html += '</div>';
+                timeline.innerHTML = html;
+            } catch (e) {
+                timeline.innerHTML = '<p class="text-xs text-red-400">載入軌跡失敗</p>';
+            }
+        }
+
+        // ======= Sensitive Info Modal =======
+        async function openSensitiveModal(itemId) {
+            const overlay = document.getElementById('sensitiveModalOverlay');
+            const content = document.getElementById('sensitiveModalContent');
+            const body = document.getElementById('sensitiveModalBody');
+            const logsBox = document.getElementById('sensitiveAccessLogs');
+            body.innerText = '載入中...';
+            logsBox.innerHTML = '';
+
+            overlay.classList.remove('modal-hidden');
+            overlay.classList.add('modal-active');
+            setTimeout(() => {
+                content.classList.remove('modal-hidden', 'scale-95');
+                content.classList.add('modal-active', 'scale-100');
+            }, 10);
+
+            try {
+                const [infoRes, logsRes] = await Promise.all([
+                    fetch(`/api/admin/items/${itemId}/sensitive`),
+                    fetch(`/api/admin/items/${itemId}/access-logs`)
+                ]);
+                const info = await infoRes.json();
+                const logs = await logsRes.json();
+
+                body.innerHTML = `
+                    <div class="bg-[#0B1120]/50 p-3 rounded-lg border border-darkborder"><span class="text-slate-500 text-xs">姓名：</span> <span class="font-bold">${info.owner_name || '（無）'}</span></div>
+                    <div class="bg-[#0B1120]/50 p-3 rounded-lg border border-darkborder"><span class="text-slate-500 text-xs">卡號末四碼：</span> <span class="font-bold font-mono">${info.card_last_four || '（無）'}</span></div>
+                `;
+
+                logsBox.innerHTML = logs.length === 0
+                    ? '<p class="text-slate-500">尚無查看紀錄</p>'
+                    : logs.map(l => `<div>${new Date(l.accessed_at).toLocaleString('zh-TW')} － ${l.operator || '未知'}</div>`).join('');
+            } catch (e) {
+                body.innerText = '載入失敗';
+            }
+        }
+
+        function closeSensitiveModal(e) {
+            if (e && e.target !== document.getElementById('sensitiveModalOverlay') && e.type !== 'click') return;
+            const overlay = document.getElementById('sensitiveModalOverlay');
+            const content = document.getElementById('sensitiveModalContent');
+            content.classList.remove('modal-active', 'scale-100');
+            content.classList.add('modal-hidden', 'scale-95');
+            setTimeout(() => {
+                overlay.classList.remove('modal-active');
+                overlay.classList.add('modal-hidden');
+            }, 200);
+        }
+
+        function closePhotoModal(e) {
+            if (e && e.target !== document.getElementById('photoModalOverlay') && e.type !== 'click') return;
+            const overlay = document.getElementById('photoModalOverlay');
+            const content = document.getElementById('photoModalContent');
+            content.classList.remove('modal-active', 'scale-100');
+            content.classList.add('modal-hidden', 'scale-95');
+            setTimeout(() => {
+                overlay.classList.remove('modal-active');
+                overlay.classList.add('modal-hidden');
+            }, 200);
+        }
+
+        async function updateStatus(id, status) {
+            await fetch(`/api/items/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+            fetchAdminItems();
+        }
+
+        async function deleteItem(id) {
+            if (confirm('確定要刪除嗎？')) {
+                await fetch(`/api/items/${id}`, { method: 'DELETE' });
+                fetchAdminItems();
+            }
+        }
+
+        function updateStats(items) {
+            const total = items.length;
+            const pending = items.filter(i => i.status === 'pending' || !i.status).length;
+            const claimed = items.filter(i => i.status === 'claimed').length;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-pending').innerText = pending;
+            document.getElementById('stat-claimed').innerText = claimed;
+        }
+
+        // Batch Ops
+        function updateBatchActionBar() {
+            const checked = document.querySelectorAll('.item-checkbox:checked');
+            const bar = document.getElementById('batchActionBar');
+            if (bar) {
+                if (checked.length > 0) {
+                    bar.classList.remove('hidden');
+                    bar.classList.add('flex');
+                    document.getElementById('selectedCountText').innerText = `已選擇 ${checked.length} 項`;
+                } else {
+                    bar.classList.add('hidden');
+                    bar.classList.remove('flex');
+                }
+            }
+        }
+
+        if(document.getElementById('selectAllCheckbox')) {
+            document.getElementById('selectAllCheckbox').addEventListener('change', function(e) {
+                document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = e.target.checked);
+                updateBatchActionBar();
+            });
+        }
+
+        async function batchUpdateStatus(status) {
+            const ids = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
+            for (const id of ids) await fetch(`/api/items/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+            fetchAdminItems();
+        }
+
+        async function batchDelete() {
+            if (!confirm('確認批次刪除？')) return;
+            const ids = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
+            for (const id of ids) await fetch(`/api/items/${id}`, { method: 'DELETE' });
+            fetchAdminItems();
+        }
+
+        // GPS
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        }
+
+        function getLocation() {
+            const btn = document.getElementById('gpsBtn');
+            if(!btn) return;
+            const originalHTML = btn.innerHTML;
+            if (navigator.geolocation) {
+                btn.innerHTML = `<span class="animate-spin inline-block">⏳</span> 定位中...`;
+                btn.disabled = true;
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userLat = position.coords.latitude;
+                        const userLon = position.coords.longitude;
+                        let nearestStation = stationsDB[0];
+                        let minDistance = calculateDistance(userLat, userLon, stationsDB[0].lat, stationsDB[0].lon);
+                        
+                        for (let i = 1; i < stationsDB.length; i++) {
+                            const dist = calculateDistance(userLat, userLon, stationsDB[i].lat, stationsDB[i].lon);
+                            if (dist < minDistance) {
+                                minDistance = dist;
+                                nearestStation = stationsDB[i];
+                            }
+                        }
+                        
+                        const stationSelect = document.getElementById('station');
+                        for(let i=0; i<stationSelect.options.length; i++) {
+                            if(stationSelect.options[i].value === nearestStation.name) {
+                                stationSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                        stationSelect.classList.add('ring-2', 'ring-emerald-500/50', 'border-emerald-500');
+                        setTimeout(() => stationSelect.classList.remove('ring-2', 'ring-emerald-500/50', 'border-emerald-500'), 1500);
+
+                        btn.innerHTML = `<span>✅</span> 定位成功`;
+                        setTimeout(() => { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
+                    },
+                    (error) => {
+                        alert('無法取得位置權限或定位失敗！');
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            } else {
+                alert("您的瀏覽器不支援 GPS 定位");
+            }
+        }
+
+        // Modal
+        function openModal() {
+            const overlay = document.getElementById('modalOverlay');
+            const modalContent = document.getElementById('addModalContent');
+            if(!overlay || !modalContent) return;
+            overlay.classList.remove('modal-hidden');
+            overlay.classList.add('modal-active');
+            setTimeout(() => {
+                modalContent.classList.remove('modal-content-hidden');
+                modalContent.classList.add('modal-content-active');
+            }, 10);
+            renderAIWarningHint();
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modalOverlay');
+            const modalContent = document.getElementById('addModalContent');
+            if(!overlay || !modalContent) return;
+            modalContent.classList.remove('modal-content-active');
+            modalContent.classList.add('modal-content-hidden');
+            setTimeout(() => {
+                overlay.classList.remove('modal-active');
+                overlay.classList.add('modal-hidden');
+            }, 200);
+        }
+
+        // QR Modal
+        function toggleQRModal(e) {
+            const qrOverlay = document.getElementById('qrModalOverlay');
+            const qrContent = document.getElementById('qrModalContent');
+            if(!qrOverlay || !qrContent) return;
+            if (e && e.target !== qrOverlay && e.type !== 'click') return;
+            
+            if (qrOverlay.classList.contains('modal-hidden')) {
+                const stationSelect = document.getElementById('qrStation');
+                if (stationSelect && stationSelect.options.length === 0 && typeof stationsDB !== 'undefined') {
+                    populateStationSelect(stationSelect);
+                }
+                qrOverlay.classList.remove('modal-hidden');
+                qrOverlay.classList.add('modal-active');
+                setTimeout(() => {
+                    qrContent.classList.remove('modal-hidden', 'scale-95');
+                    qrContent.classList.add('modal-active', 'scale-100');
+                }, 10);
+            } else {
+                qrContent.classList.remove('modal-active', 'scale-100');
+                qrContent.classList.add('modal-hidden', 'scale-95');
+                setTimeout(() => {
+                    qrOverlay.classList.remove('modal-active');
+                    qrOverlay.classList.add('modal-hidden');
+                }, 200);
+            }
+        }
+
+        async function submitQRScan(e) {
+            e.preventDefault();
+            const btn = document.getElementById('qrSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '更新中...';
+            
+            const payload = {
+                qr_code_id: document.getElementById('qrCodeId').value,
+                new_station: document.getElementById('qrStation').value,
+                new_status: document.getElementById('qrStatus').value
+            };
+            
+            try {
+                const res = await fetch('/api/scan-qr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    alert('更新成功！');
+                    document.getElementById('qrScanForm').reset();
+                    toggleQRModal();
+                    fetchAdminItems();
+                } else {
+                    const err = await res.json().catch(() => null);
+                    alert(err && err.detail ? err.detail : '找不到此追蹤碼，請確認後再試。');
+                }
+            } catch (err) {
+                alert('發生錯誤');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '確認更新';
+            }
+        }
+
+        // Form Logic
+        let cropper = null;
+        let croppedBlob = null;
+        const originalBtnText = '🚀 確認上傳登記';
+
+        if(document.getElementById('on_train_toggle')) {
+            document.getElementById('on_train_toggle').addEventListener('change', function(e) {
+                const details = document.getElementById('train_details');
+                if (e.target.checked) {
+                    details.classList.remove('hidden');
+                } else {
+                    details.classList.add('hidden');
+                    document.getElementById('train_type').selectedIndex = 0;
+                    document.getElementById('train_number').value = '';
+                    document.getElementById('seat_number').value = '';
+                    document.getElementById('seat_details').classList.add('hidden');
+                }
+            });
+        }
+
+        if(document.getElementById('train_type')) {
+            document.getElementById('train_type').addEventListener('change', function(e) {
+                const type = e.target.value;
+                const seatDetails = document.getElementById('seat_details');
+                const reservedTrains = ['莒光號', '自強號', '普悠瑪', '太魯閣', '新自強', '復興號'];
+                if (reservedTrains.includes(type)) {
+                    seatDetails.classList.remove('hidden');
+                } else {
+                    seatDetails.classList.add('hidden');
+                    document.getElementById('seat_number').value = '';
+                }
+            });
+        }
+
+        if(document.getElementById('image')) {
+            document.getElementById('image').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const preview = document.getElementById('imagePreview');
+                        preview.src = ev.target.result;
+                        
+                        document.getElementById('image').parentElement.classList.add('hidden');
+                        document.getElementById('cropperContainer').classList.remove('hidden');
+                        document.getElementById('cropActions').classList.remove('hidden');
+
+                        if (cropper) cropper.destroy();
+                        cropper = new Cropper(preview, {
+                            viewMode: 1,
+                            dragMode: 'move',
+                            autoCropArea: 0.8,
+                            restore: false,
+                            guides: true,
+                            center: true,
+                            highlight: false,
+                            cropBoxMovable: true,
+                            cropBoxResizable: true,
+                            toggleDragModeOnDblclick: false,
+                        });
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    document.getElementById('cropperContainer').classList.add('hidden');
+                    document.getElementById('cropActions').classList.add('hidden');
+                    document.getElementById('image').parentElement.classList.remove('hidden');
+                }
+            });
+        }
+
+        if(document.getElementById('btnCropAnalyze')) {
+            document.getElementById('btnCropAnalyze').addEventListener('click', async function() {
+                if (!cropper) return;
+                const descInput = document.getElementById('description');
+                const aiStatus = document.getElementById('ai_status');
+                const btn = document.getElementById('btnCropAnalyze');
+                
+                btn.disabled = true;
+                btn.innerHTML = '🤖 分析中...';
+                aiStatus.className = 'text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded animate-pulse inline-block';
+                aiStatus.innerText = '🤖 AI 辨識中...';
+                descInput.disabled = true;
+                
+                cropper.getCroppedCanvas({ maxWidth: 1024, maxHeight: 1024 }).toBlob(async (blob) => {
+                    croppedBlob = blob;
+                    const fd = new FormData();
+                    fd.append('image', blob, 'cropped.jpg');
+                    
+                    try {
+                        const res = await fetch('/api/analyze-image', { method: 'POST', body: fd });
+                        const data = await res.json();
+                        if (data.status === 'success' && data.description) {
+                            descInput.value = data.description;
+                            window.aiData = data;
+                            aiStatus.innerText = '✨ AI 辨識完成';
+                            aiStatus.className = 'text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded inline-block';
+                            
+                            if (data.category) {
+                                const catSelect = document.getElementById('category');
+                                const aiCat = data.category;
+                                if (aiCat.includes('電子') || aiCat.includes('手機') || aiCat.includes('平板') || aiCat.includes('耳機') || aiCat.includes('電腦')) catSelect.value = '3C';
+                                else if (aiCat.includes('卡') || aiCat.includes('證') || aiCat.includes('身分')) catSelect.value = '證件';
+                                else if (aiCat.includes('現金') || aiCat.includes('鈔') || aiCat.includes('硬幣')) catSelect.value = '現金';
+                                else if (aiCat.includes('錢包') || aiCat.includes('皮夾') || aiCat.includes('珠寶') || aiCat.includes('手錶')) catSelect.value = '貴重品';
+                                else catSelect.value = '一般物品';
+
+                                const itemNameInput = document.getElementById('item_name');
+                                if (itemNameInput && !itemNameInput.value) itemNameInput.value = aiCat;
+                            }
+                        } else if (data.status === 'error') {
+                            aiStatus.innerText = '❌ ' + (data.message || '辨識失敗');
+                            aiStatus.className = 'text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded inline-block';
+                        }
+                    } catch (err) {
+                        aiStatus.classList.add('hidden');
+                    } finally {
+                        descInput.disabled = false;
+                        btn.innerHTML = '✅ 重新裁切與辨識';
+                        btn.disabled = false;
+                        setTimeout(() => { aiStatus.classList.add('hidden'); }, 5000);
+                    }
+                }, 'image/jpeg', 0.8);
+            });
+        }
+
+        if(document.getElementById('btnChangeImage')) {
+            document.getElementById('btnChangeImage').addEventListener('click', function() {
+                if (cropper) { cropper.destroy(); cropper = null; }
+                croppedBlob = null;
+                const imageInput = document.getElementById('image');
+                imageInput.value = '';
+                document.getElementById('cropperContainer').classList.add('hidden');
+                document.getElementById('cropActions').classList.add('hidden');
+                document.getElementById('imageInputContainer').classList.remove('hidden');
+                const aiStatus = document.getElementById('ai_status');
+                aiStatus.classList.add('hidden');
+            });
+        }
+
+        if(document.getElementById('additional_images')) {
+            document.getElementById('additional_images').addEventListener('change', function(e) {
+                const container = document.getElementById('additionalPreviews');
+                container.innerHTML = '';
+                Array.from(e.target.files).forEach(file => {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.className = 'w-16 h-16 object-cover rounded-lg border border-slate-700 shadow-md';
+                    container.appendChild(img);
+                });
+            });
+        }
+
+        if(document.getElementById('lostItemForm')) {
+            document.getElementById('lostItemForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> 處理中...';
+
+                const formData = new FormData();
+                formData.append('category', document.getElementById('category').value);
+                formData.append('item_name', document.getElementById('item_name').value);
+                formData.append('description', document.getElementById('description').value);
+                formData.append('custodian_unit', document.getElementById('custodian_unit').value);
+                formData.append('service_phone', document.getElementById('service_phone').value);
+                formData.append('station_code', document.getElementById('station_code').value);
+
+                const perishableCheck = document.getElementById('is_perishable');
+                if (perishableCheck && perishableCheck.checked) {
+                    formData.append('is_perishable', 'true');
+                }
+
+                const station = document.getElementById('station').value;
+                const platform = document.getElementById('platform').value;
+                const onTrain = document.getElementById('on_train_toggle').checked;
+                const trainNumberVal = document.getElementById('train_number').value;
+
+                // 對應台鐵公告格式：「車上 車次:111」或「車站:3390-員林」
+                let foundLocation;
+                if (onTrain && trainNumberVal) {
+                    formData.append('pickup_type', '車上');
+                    foundLocation = `車上 車次:${trainNumberVal}`;
+                } else {
+                    formData.append('pickup_type', '車站');
+                    foundLocation = `車站:${document.getElementById('station_code').value || ''} - ${station}`;
+                }
+                formData.append('found_location', foundLocation);
+
+                if (croppedBlob) {
+                    formData.append('image', croppedBlob, 'cropped.jpg');
+                } else {
+                    formData.append('image', document.getElementById('image').files[0]);
+                }
+
+                if (onTrain) {
+                    const tt = document.getElementById('train_type').value;
+                    if (tt !== '選擇車種' && tt) formData.append('train_type', tt);
+                    formData.append('train_number', trainNumberVal || '');
+                    formData.append('seat_number', document.getElementById('seat_number').value || '');
+                }
+
+                const addFiles = document.getElementById('additional_images').files;
+                for (let i = 0; i < addFiles.length; i++) {
+                    formData.append('additional_images', addFiles[i]);
+                }
+
+                formData.append('current_station', station);
+                let aiCorrections = [];
+                if (window.aiData) {
+                    formData.append('tags', window.aiData.tags || '');
+                    formData.append('is_sensitive', window.aiData.is_sensitive ? 'true' : 'false');
+                    formData.append('owner_name', window.aiData.owner_name || '');
+                    formData.append('card_last_four', window.aiData.card_last_four || '');
+
+                    const finalDescription = document.getElementById('description').value;
+                    const finalItemName = document.getElementById('item_name').value;
+                    if (window.aiData.description && window.aiData.description !== finalDescription) {
+                        aiCorrections.push({ field_name: 'description', ai_value: window.aiData.description, corrected_value: finalDescription });
+                    }
+                    if (window.aiData.category && window.aiData.category !== finalItemName) {
+                        aiCorrections.push({ field_name: 'item_name', ai_value: window.aiData.category, corrected_value: finalItemName });
+                    }
+                }
+
+                try {
+                    const response = await fetch('/api/items', { method: 'POST', body: formData });
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (aiCorrections.length > 0 && result.item_id) {
+                            aiCorrections.forEach(c => {
+                                fetch(`/api/items/${result.item_id}/ai-correction`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(c)
+                                }).catch(() => {});
+                            });
+                        }
+                        submitBtn.innerHTML = '登記成功！';
+                        this.reset();
+                        document.getElementById('cropperContainer').classList.add('hidden');
+                        document.getElementById('cropActions').classList.add('hidden');
+                        document.getElementById('image').parentElement.classList.remove('hidden');
+                        if (cropper) cropper.destroy();
+                        cropper = null;
+                        croppedBlob = null;
+                        window.aiData = null;
+                        document.getElementById('additionalPreviews').innerHTML = '';
+                        document.getElementById('train_details').classList.add('hidden');
+                        fetchAdminItems(); 
+                        setTimeout(() => {
+                            closeModal();
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnText;
+                        }, 1000);
+                    } else {
+                        throw new Error('Upload failed');
+                    }
+                } catch (error) {
+                    alert('上傳失敗');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            });
+        }
+
+        // Wishlist Fetch
+        async function fetchWishlist() {
+            try {
+                const res = await fetch('/api/admin/wishlists');
+                const data = await res.json();
+                const tbody = document.getElementById('wishlistTableBody');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+                if(data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-12 text-center text-slate-500 font-bold">目前沒有許願清單</td></tr>';
+                    return;
+                }
+                data.forEach(w => {
+                    const statusHTML = w.is_expired
+                        ? `<span class="px-3 py-1 bg-orange-500/10 text-orange-400 rounded-lg text-xs font-bold border border-orange-500/20">⏰ 已逾期，停止比對</span>`
+                        : (w.is_active
+                            ? `<span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg text-xs font-bold border border-emerald-500/20">尋找中</span>`
+                            : `<span class="px-3 py-1 bg-slate-500/10 text-slate-400 rounded-lg text-xs font-bold border border-slate-500/20">已關閉</span>`);
+
+                    const hasPendingMatch = w.is_active && w.matched_item;
+                    const matchBannerHTML = hasPendingMatch
+                        ? `<div class="mt-1.5 text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg px-2 py-1 inline-block">🔔 可能已找到：${w.matched_item.item_name || w.matched_item.description}</div>`
+                        : '';
+
+                    const actionsHTML = w.is_active
+                        ? `<button onclick="updateWishlistStatus(${w.id}, false)" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3 py-1.5 rounded-lg transition border border-slate-600 shadow-sm">關閉請求</button>`
+                        : `<button onclick="updateWishlistStatus(${w.id}, true)" class="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold px-3 py-1.5 rounded-lg transition border border-blue-500/30 shadow-sm">重啟尋找</button>`;
+
+                    const closeBtnHTML = hasPendingMatch
+                        ? `<button onclick="resolveWishlist(${w.id})" class="ml-2 text-xs bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-bold px-3 py-1.5 rounded-lg transition border border-emerald-500/30 shadow-sm">✅ 結案</button>`
+                        : '';
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-white/[0.02] transition-colors';
+                    tr.innerHTML = `
+                        <td class="px-6 py-5 font-bold text-slate-200">${w.user_name} <br><span class="text-xs font-normal text-slate-400">${w.user_email}${w.user_phone ? ' ｜ ' + w.user_phone : ''}</span></td>
+                        <td class="px-6 py-5"><span class="bg-[#0B1120] px-3 py-1 rounded-lg border border-darkborder text-xs text-slate-300 font-bold">${w.category}</span></td>
+                        <td class="px-6 py-5 font-bold text-amber-400 max-w-[200px] truncate" title="${w.keywords}">${w.keywords}</td>
+                        <td class="px-6 py-5">${statusHTML}${matchBannerHTML}</td>
+                        <td class="px-6 py-5 text-right">
+                            ${actionsHTML}
+                            ${closeBtnHTML}
+                            <button onclick="deleteWishlist(${w.id})" class="ml-2 text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold px-3 py-1.5 rounded-lg transition border border-red-500/20 shadow-sm">刪除</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function updateWishlistStatus(id, isActive) {
+            await fetch(`/api/admin/wishlists/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ is_active: isActive })
+            });
+            fetchWishlist();
+        }
+
+        async function resolveWishlist(id) {
+            if (!confirm('確認已聯繫失主並結案？此筆許願將會關閉。')) return;
+            await fetch(`/api/admin/wishlists/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ is_active: false })
+            });
+            fetchWishlist();
+        }
+
+        async function deleteWishlist(id) {
+            if(confirm('確認刪除該筆許願請求？')) {
+                await fetch(`/api/admin/wishlists/${id}`, { method: 'DELETE' });
+                fetchWishlist();
+            }
+        }
+
+        // Initialize
+        fetchAdminItems();
+    </script>
+</body>
+</html>

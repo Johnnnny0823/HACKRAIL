@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(curl -s -c cookies.txt -X POST http://127.0.0.1:8000/login -d \"username=admin&password=admin123\" -o /dev/null -w \"login status: %{http_code}\\\\n\")",
+      "Bash(curl -s -b cookies.txt http://127.0.0.1:8000/api/admin/wishlists -w \"\\\\nwishlists status: %{http_code}\\\\n\")",
+      "Bash(curl -s -b cookies.txt http://127.0.0.1:8000/api/admin/delivery-rules -w \"\\\\ndelivery-rules status: %{http_code}\\\\n\")",
+      "Bash(curl -s -b cookies.txt http://127.0.0.1:8000/api/admin/ai-corrections/summary -w \"\\\\nai-summary status: %{http_code}\\\\n\")",
+      "Bash(curl -s http://127.0.0.1:8000/api/items)",
+      "Bash(curl -s \"http://127.0.0.1:8000/api/search?time_hint=今天\" -w \"\\\\nstatus: %{http_code}\\\\n\")",
+      "Bash(curl -s \"http://127.0.0.1:8000/api/search?time_hint=%E4%BB%8A%E5%A4%A9\" -w \"\\\\nstatus: %{http_code}\\\\n\")",
+      "Bash(taskkill //F //IM python.exe)",
+      "Bash(python -m uvicorn main:app --host 127.0.0.1 --port 8000)",
+      "Bash(python -c \"import playwright\")",
+      "Bash(npx --version)",
+      "Bash(python -m playwright install chromium)",
+      "Bash(python \"/c/Users/xnikz/verify_step1_2.py\")",
+      "Bash(python \"/c/Users/xnikz/verify_modal_baseline.py\")",
+      "Bash(python \"/c/Users/xnikz/verify_guided_close.py\")",
+      "Bash(python \"/c/Users/xnikz/verify_step3.py\")",
+      "Bash(python \"/c/Users/xnikz/verify_step3.py\" > /tmp/step3_out.txt 2>&1; cat /tmp/step3_out.txt)",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/search-by-image -F \"image=@/c/Users/xnikz/OneDrive/桌面/templates2-main/uploads/20260618190349_demo_5.jpg\" -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" --max-time 30)",
+      "Bash(time curl -s -X POST http://127.0.0.1:8000/api/search-by-image -F \"image=@/c/Users/xnikz/OneDrive/桌面/templates2-main/uploads/20260618190349_demo_5.jpg\" -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" --max-time 60 -o response.json)",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/search-by-image -F \"image=@/c/Users/xnikz/OneDrive/桌面/templates2-main/uploads/20260618190349_demo_5.jpg\" -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" --max-time 60 -o response2.json)",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/search-by-image -F \"image=@/c/Users/xnikz/OneDrive/桌面/templates2-main/uploads/20260618190349_demo_5.jpg\" --max-time 30)",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/search-by-image -F \"image=@/c/Users/xnikz/OneDrive/桌面/templates2-main/uploads/20260618210349_demo_3.jpg\" --max-time 30)",
+      "Bash(python \"/c/Users/xnikz/verify_step3_mocked.py\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\xnikz",
+      "\\tmp"
+    ]
+  }
+}

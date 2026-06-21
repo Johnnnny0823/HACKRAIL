@@ -1,0 +1,61 @@
+Created At: 2026-06-13T05:23:54Z
+Completed At: 2026-06-13T05:23:54Z
+File Path: `file:///Users/joshmac/Downloads/templates-main/admin.html`
+Total Lines: 825
+Total Bytes: 48956
+Showing lines 1 to 800
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>後台管理 - 鐵道遺失物登記系統</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        darkbg: '#0B1120',
+                        darkcard: '#111827',
+                        darkborder: '#1F2937',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0B1120; color:
+<truncated 45282 bytes>
+         ? `<button onclick="updateStatus(${item.id}, 'claimed')" class="text-blue-400 hover:text-white font-bold px-3 py-1.5 rounded-lg border border-blue-500/30 hover:bg-blue-500 hover:shadow-[0_0_15px_rgba(59,130,246,0.4)] transition-all uppercase text-xs tracking-wider">標記結案</button>`
+                    : `<button onclick="updateStatus(${item.id}, 'pending')" class="text-amber-400 hover:text-white font-bold px-3 py-1.5 rounded-lg border border-amber-500/30 hover:bg-amber-500 hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all uppercase text-xs tracking-wider">退回未領</button>`;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/[0.02] transition-colors group";
+                tr.innerHTML = `
+                    <td class="px-6 py-5">
+                        <input type="checkbox" class="item-checkbox w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50 cursor-pointer" value="${item.id}" onchange="updateBatchActionBar()">
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="flex items-center gap-4">
+                            <div class="relative w-14 h-14 rounded-xl overflow-hidden border border-slate-700 group-hover:border-slate-500 transition-colors">
+                                <img src="/uploads/${item.image_filename}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=No+Img'">
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-200 line-clamp-1 max-w-[200px]" title="${item.description}">${item.description}</p>
+                                <p class="text-xs text-slate-500 font-mono mt-1">I
+<truncated 3509 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

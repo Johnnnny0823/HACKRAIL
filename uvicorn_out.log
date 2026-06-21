@@ -1,0 +1,108 @@
+INFO:     127.0.0.1:60857 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53794 - "GET /admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53794 - "GET /static/stations.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53794 - "GET /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53794 - "GET /api/admin/ai-corrections/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61621 - "GET /uploads/20260619003934_cropped.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56146 - "GET /uploads/20260618220349_demo_2.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:53794 - "GET /uploads/20260618200349_demo_4.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:49670 - "GET /uploads/20260619000349_demo_0.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:49305 - "GET /uploads/20260618210349_demo_3.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:54623 - "GET /uploads/20260618230349_demo_1.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56146 - "GET /uploads/20260618190349_demo_5.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56146 - "GET /api/admin/wishlists HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60473 - "GET /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60473 - "GET /api/admin/ai-corrections/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61024 - "POST /api/analyze-image HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65532 - "POST /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55419 - "GET /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65532 - "POST /api/items/8/ai-correction HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55419 - "GET /api/admin/ai-corrections/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57123 - "GET /uploads/20260621134812_cropped.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61242 - "GET /api/admin/wishlists HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61242 - "GET /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61242 - "GET /api/admin/ai-corrections/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61242 - "GET /api/admin/wishlists HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51995 - "GET /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51995 - "GET /api/admin/ai-corrections/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51995 - "GET /api/admin/wishlists HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51995 - "GET /api/admin/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /api/admin/delivery-rules HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63249 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63249 - "GET /api/search?_t=1782020923683 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63249 - "GET /uploads/20260621134812_cropped.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57788 - "POST /api/wishlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50725 - "GET /admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50725 - "GET /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50725 - "GET /api/admin/ai-corrections/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57346 - "GET /uploads/20260621134812_cropped.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57346 - "GET /api/admin/wishlists HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52347 - "GET /api/admin/delivery-rules HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56055 - "GET /api/admin/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56055 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56055 - "GET /api/search?_t=1782020982796 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56055 - "GET /uploads/20260621134812_cropped.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:49670 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49670 - "GET /api/search?_t=1782021093774 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49670 - "GET /uploads/20260621134812_cropped.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52686 - "POST /api/delivery HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50569 - "GET /admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50569 - "GET /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50569 - "GET /api/admin/ai-corrections/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62233 - "GET /uploads/20260621134812_cropped.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50569 - "GET /api/admin/delivery-rules HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62233 - "GET /api/admin/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62233 - "PUT /api/admin/deliveries/2/status HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:62233 - "PUT /api/admin/deliveries/2/status HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49670 - "GET /api/admin/wishlists HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53193 - "GET /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53193 - "GET /api/admin/ai-corrections/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51957 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51957 - "GET /api/search?_t=1782021315262 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51957 - "GET /uploads/20260621134812_cropped.jpg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63694 - "POST /login HTTP/1.1" 303 See Other
+INFO:     127.0.0.1:63694 - "GET /admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63695 - "GET /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63694 - "POST /api/delivery HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63694 - "GET /api/admin/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63694 - "PUT /api/admin/deliveries/3/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58758 - "GET /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58760 - "POST /login HTTP/1.1" 303 See Other
+INFO:     127.0.0.1:58760 - "GET /admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58760 - "PUT /api/admin/deliveries/2/status HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:55464 - "POST /api/wishlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55466 - "GET /api/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55471 - "POST /api/wishlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63128 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63128 - "GET /static/stations.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63128 - "GET /api/search?_t=1782021795954 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63128 - "GET /uploads/20260621134812_cropped.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53979 - "GET /uploads/20260619000349_demo_0.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55064 - "GET /uploads/20260619003934_cropped.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51761 - "GET /uploads/20260618230349_demo_1.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49670 - "GET /uploads/20260618210349_demo_3.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64339 - "GET /uploads/20260618220349_demo_2.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63128 - "GET /uploads/20260618200349_demo_4.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64339 - "GET /uploads/20260618190349_demo_5.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61409 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61409 - "GET /static/stations.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61409 - "GET /api/search?_t=1782021944011 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61409 - "GET /uploads/20260621134812_cropped.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56978 - "GET /uploads/20260618220349_demo_2.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63815 - "GET /uploads/20260619003934_cropped.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58028 - "GET /uploads/20260618210349_demo_3.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63770 - "GET /uploads/20260619000349_demo_0.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50378 - "GET /uploads/20260618230349_demo_1.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61409 - "GET /uploads/20260618200349_demo_4.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50378 - "GET /uploads/20260618190349_demo_5.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62711 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62711 - "GET /static/stations.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62711 - "GET /api/search?_t=1782021966349 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62711 - "GET /uploads/20260621134812_cropped.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49670 - "GET /uploads/20260619000349_demo_0.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57987 - "GET /uploads/20260619003934_cropped.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60047 - "GET /uploads/20260618230349_demo_1.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62492 - "GET /uploads/20260618220349_demo_2.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51355 - "GET /uploads/20260618210349_demo_3.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62711 - "GET /uploads/20260618200349_demo_4.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49670 - "GET /uploads/20260618190349_demo_5.jpg HTTP/1.1" 200 OK
