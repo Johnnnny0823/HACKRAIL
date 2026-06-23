@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from fastapi import FastAPI, File, UploadFile, Form, Request, HTTPException, Depends, Response, BackgroundTasks
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -725,8 +726,9 @@ async def search_by_image(image: UploadFile = File(...)):
         
         model = genai.GenerativeModel('gemini-flash-latest')
         prompt = "你是一個遺失物搜尋助理。請分析圖片並以逗號分隔列出最重要的 3 到 5 個外觀特徵與顏色（如：藍色,保溫瓶,不鏽鋼,黑色蓋子）。不要回答其他任何文字。"
-        response = model.generate_content([prompt, img])
-        
+        # Gemini SDK 是同步阻塞呼叫，丟到 threadpool 避免卡住事件迴圈、影響其他人的請求
+        response = await run_in_threadpool(model.generate_content, [prompt, img])
+
         keywords = [k.strip() for k in response.text.split(',') if k.strip()]
         
         db = SessionLocal()
@@ -803,7 +805,9 @@ async def create_wishlist(wish: WishlistCreate):
             else:
                 unmatched_candidates.append(item)
         # 關鍵字/拆字比對沒中的，再用 AI 語意比對一次，處理用詞不同的情況（水壺 vs 保溫杯）
-        ai_matched_ids = ai_semantic_match(wish.keywords, unmatched_candidates)
+        # 丟到 threadpool 執行：Gemini SDK 是同步阻塞呼叫，若直接在 async route 裡呼叫會卡住整個事件迴圈，
+        # 讓 Gemini 回應變慢時其他人連首頁都打不開
+        ai_matched_ids = await run_in_threadpool(ai_semantic_match, wish.keywords, unmatched_candidates)
         id_to_item = {item.id: item for item in unmatched_candidates}
         for mid in ai_matched_ids:
             if mid in id_to_item:
@@ -1102,7 +1106,7 @@ async def update_item_status(item_id: int, status_update: StatusUpdate, backgrou
             keywords = [k.strip() for k in wish.keywords.split(' ') if k.strip()]
             matched = keyword_match_score(keywords, item) > 0
             if not matched:
-                matched = item.id in ai_semantic_match(wish.keywords, [item])
+                matched = item.id in await run_in_threadpool(ai_semantic_match, wish.keywords, [item])
             if matched:
                 wish.matched_item_id = item.id
                 background_tasks.add_task(send_already_claimed_match_email, wish.user_email, wish.user_name, item)
@@ -1165,7 +1169,7 @@ async def batch_update_status(req: BatchStatusRequest, background_tasks: Backgro
                 keywords = [k.strip() for k in wish.keywords.split(' ') if k.strip()]
                 matched = keyword_match_score(keywords, item) > 0
                 if not matched:
-                    matched = item.id in ai_semantic_match(wish.keywords, [item])
+                    matched = item.id in await run_in_threadpool(ai_semantic_match, wish.keywords, [item])
                 if matched:
                     wish.matched_item_id = item.id
                     background_tasks.add_task(send_already_claimed_match_email, wish.user_email, wish.user_name, item)
@@ -1199,8 +1203,9 @@ async def analyze_image(image: UploadFile = File(...)):
 4. "ocr_text": 如果圖片中有身分證、信用卡、學生證等，請提取出姓名或卡號末四碼。如果沒有則回傳空字串。
 5. "description": 綜合描述，包含特徵、材質、品牌或型號，30字以內。
 請只回傳 JSON 格式字串，不要包含其他說明文字或 markdown 標記。"""
-        response = model.generate_content([prompt, img])
-        
+        # Gemini SDK 是同步阻塞呼叫，丟到 threadpool 避免卡住事件迴圈、影響其他人的請求
+        response = await run_in_threadpool(model.generate_content, [prompt, img])
+
         import json
         try:
             result_text = response.text.strip()
