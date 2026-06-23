@@ -18,6 +18,7 @@ import qrcode
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -250,6 +251,7 @@ SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 GMAIL_ACCOUNT = os.environ.get("GMAIL_ACCOUNT", "")
 GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
+SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000").rstrip("/")  # 用於 email 內組成物品照片的絕對網址連結
 
 def send_match_email(to_email: str, user_name: str, item: LostItem):
     if not GMAIL_APP_PASSWORD:
@@ -323,30 +325,47 @@ def send_already_claimed_match_email(to_email: str, user_name: str, item: LostIt
     except Exception as e:
         print(f"Email failed: {e}")
 
-def send_delivery_notification(email: str, item_desc: str, target_station: str):
+def send_delivery_notification(email: str, item_name: str, item_desc: str, image_filename: str,
+                                item_code: str, service_phone: str, target_station: str):
+    """配送送達車站時通知旅客，內容依台鐵遺失物公告慣例附上物品代號、特徵、照片（以附加檔案方式），
+    並提醒攜帶身分證件於營業時間內到場領取（領取核對動作仍由站務員透過 verify-pickup 執行，本信僅為通知）。
+    參數皆為已從 ORM 物件取出的純值，避免背景任務執行時 db session 已關閉、物件已過期而觸發 DetachedInstanceError。"""
     if not GMAIL_ACCOUNT or not GMAIL_APP_PASSWORD:
         return
     try:
         msg = MIMEMultipart()
         msg['From'] = GMAIL_ACCOUNT
         msg['To'] = email
-        msg['Subject'] = f"[鐵道尋蹤] 您的物品已送達 {target_station}！"
-        
+        msg['Subject'] = f"【鐵道遺失物寄送】您的遺失物已送達{target_station}！"
+
+        service_phone_line = f"\n- 服務電話：{service_phone}" if service_phone else ""
+        item_code_line = f"\n- 物品代號：{item_code}" if item_code else ""
+        photo_note = "（詳見附加照片）" if image_filename else ""
+
         body = f"""親愛的旅客您好：
 
 您所申請認領的物品已成功送達指定的【{target_station}】！
 
 【物品資訊】
-- 特徵：{item_desc}
+- 名稱：{item_name}
+- 特徵：{item_desc}{photo_note}{item_code_line}{service_phone_line}
 
-請您攜帶有照片之身分證件，於營業時間內前往 {target_station} 服務台進行核對與領取。
-若該物品屬於高價值物品，可能需要您提供其他證明（如報案單、詳細特徵照片等）。
+請您攜帶「本人」之有效身分證件（身分證、駕照或健保卡等），於營業時間內前往 {target_station} 服務台，並出示上述物品代號與特徵以供站務人員核對後領取。
+若委託他人代領，代領人須攜帶雙方身分證件及委託書；逾期未領取之物品將依台鐵相關規定處理，請盡速辦理領取手續。
 
 祝您順心
 鐵道尋蹤 系統自動通知
 """
         msg.attach(MIMEText(body, 'plain'))
-        
+
+        if image_filename:
+            image_path = os.path.join(UPLOAD_DIR, image_filename)
+            if os.path.isfile(image_path):
+                with open(image_path, 'rb') as img_file:
+                    img_part = MIMEImage(img_file.read())
+                img_part.add_header('Content-Disposition', 'attachment', filename=image_filename)
+                msg.attach(img_part)
+
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         server.starttls()
         server.login(GMAIL_ACCOUNT, GMAIL_APP_PASSWORD)
@@ -978,7 +997,11 @@ def update_delivery_status(req_id: int, update: DeliveryStatusUpdate, background
     db.commit()
 
     if update.status == "arrived" and item:
-        background_tasks.add_task(send_delivery_notification, req.customer_email, item.description, req.target_station)
+        background_tasks.add_task(
+            send_delivery_notification, req.customer_email,
+            item.item_name or item.category, item.description, item.image_filename,
+            item.item_code, item.service_phone, req.target_station
+        )
 
     db.close()
     return {"status": "success"}

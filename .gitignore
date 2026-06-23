@@ -6,12 +6,3 @@ venv/
 
 # Environment
 .env
-
-# Database
-lost_found.db
-
-# Uploads
-uploads/
-*.jpg
-*.png
-*.jpeg
