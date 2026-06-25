@@ -241,8 +241,17 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 os.makedirs(STATIC_DIR, exist_ok=True)
 
+class NoCacheStaticFiles(StaticFiles):
+    """物品照片檔名固定不變但內容可能被後台覆蓋（如管理員換照片），
+    若依瀏覽器預設行為走磁碟快取，使用者即使重開瀏覽器也可能看到舊照片，
+    只有無痕視窗才會繞過——故強制 no-cache，瀏覽器仍可用 ETag 做條件式請求，不致每次重新下載整張圖。"""
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
 # 掛載靜態檔案 (供讀取圖片與前端腳本)
-app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+app.mount("/uploads", NoCacheStaticFiles(directory=UPLOAD_DIR), name="uploads")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=BASE_DIR)
 
@@ -390,6 +399,10 @@ def is_valid_transition(old_status: str, new_status: str) -> bool:
 
 def gemini_error_message(e: Exception) -> str:
     if isinstance(e, ResourceExhausted):
+        # Google 回傳的 quota_id 會區分「每日額度」與「每分鐘/即時流量限流」兩種完全不同的情況，
+        # 每日額度要等隔天（美西時間午夜）才重置，若仍顯示「1 分鐘內會恢復」會誤導使用者一直重試
+        if "PerDay" in str(e):
+            return "AI 今日額度已用罄，請明天再試（Gemini 免費版每日請求次數有限）"
         return "AI 額度已達上限，請稍後再試（通常 1 分鐘內會恢復）"
     return f"AI 辨識發生錯誤：{str(e)}"
 

@@ -372,6 +372,23 @@
                     <input type="checkbox" id="is_perishable" class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50">
                     <span class="text-sm font-bold text-amber-400">⚠️ 標記為易腐壞/食物 (當日作廢)</span>
                 </label>
+
+                <label class="flex items-center gap-2 mt-2 cursor-pointer">
+                    <input type="checkbox" id="manual_sensitive" onchange="document.getElementById('manualSensitiveFields').classList.toggle('hidden', !this.checked)" class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-red-500 focus:ring-red-500/50">
+                    <span class="text-sm font-bold text-red-400">🔒 此物品含有證件/個資（身分證、信用卡、學生證等）</span>
+                </label>
+                <p class="text-xs text-slate-500 mt-1 ml-6">未按「裁切並 AI 辨識」或 AI 額度已用罄時，AI 不會自動判斷個資，請手動勾選以啟用遮蔽與存取記錄。</p>
+
+                <div id="manualSensitiveFields" class="hidden mt-3 ml-6 grid grid-cols-2 gap-3 bg-red-500/5 border border-red-500/20 rounded-xl p-3">
+                    <div>
+                        <label class="block text-xs text-slate-500 mb-1">證件姓名 (選填，僅供後台核對顯示用)</label>
+                        <input type="text" id="manual_owner_name" placeholder="例如：王小明" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-500 mb-1">卡號/證號末四碼 (選填)</label>
+                        <input type="text" id="manual_card_last_four" placeholder="例如：1234" maxlength="4" class="w-full bg-[#0B1120] border border-darkborder text-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                    </div>
+                </div>
             </div>
 
             <div class="bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
@@ -1383,11 +1400,17 @@
 
                 formData.append('current_station', station);
                 let aiCorrections = [];
+                const manualSensitive = document.getElementById('manual_sensitive').checked;
+                const manualOwnerName = document.getElementById('manual_owner_name').value.trim();
+                const manualCardLastFour = document.getElementById('manual_card_last_four').value.trim();
                 if (window.aiData) {
                     formData.append('tags', window.aiData.tags || '');
-                    formData.append('is_sensitive', window.aiData.is_sensitive ? 'true' : 'false');
-                    formData.append('owner_name', window.aiData.owner_name || '');
-                    formData.append('card_last_four', window.aiData.card_last_four || '');
+                    // 站務員未按 AI 辨識（或當天 AI 額度已用罄）時 window.aiData 不存在，
+                    // is_sensitive 不能只看 AI 判斷結果，否則證件/個資完全沒被標記、沒有遮蔽也沒有存取記錄；
+                    // 姓名/卡號也以手動輸入優先，因為站務員手動勾選時通常代表 AI 沒有抓到值可顯示
+                    formData.append('is_sensitive', (window.aiData.is_sensitive || manualSensitive) ? 'true' : 'false');
+                    formData.append('owner_name', manualOwnerName || window.aiData.owner_name || '');
+                    formData.append('card_last_four', manualCardLastFour || window.aiData.card_last_four || '');
 
                     const finalDescription = document.getElementById('description').value;
                     const finalItemName = document.getElementById('item_name').value;
@@ -1397,6 +1420,10 @@
                     if (window.aiData.category && window.aiData.category !== finalItemName) {
                         aiCorrections.push({ field_name: 'item_name', ai_value: window.aiData.category, corrected_value: finalItemName });
                     }
+                } else if (manualSensitive) {
+                    formData.append('is_sensitive', 'true');
+                    formData.append('owner_name', manualOwnerName);
+                    formData.append('card_last_four', manualCardLastFour);
                 }
 
                 try {

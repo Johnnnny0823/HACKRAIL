@@ -162,22 +162,16 @@
                 <div class="flex items-start gap-3">
                     <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">📞</div>
                     <div>
-                        <p class="text-xs text-slate-500 font-bold mb-0.5">服務專線</p>
-                        <a href="tel:0800123456" class="text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors">0800-123-456</a>
-                    </div>
-                </div>
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">✉️</div>
-                    <div>
-                        <p class="text-xs text-slate-500 font-bold mb-0.5">電子信箱</p>
-                        <a href="mailto:support@railway-lf.com" class="text-sm font-bold text-slate-800 hover:text-purple-600 transition-colors break-all">support@railway-lf.com</a>
+                        <p class="text-xs text-slate-500 font-bold mb-0.5">24小時客服專線（協助確認遺失物狀態）</p>
+                        <a href="tel:0800765888" class="text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors block">0800-765-888（限市話）</a>
+                        <a href="tel:0221910096" class="text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors block">02-2191-0096（市話、手機）</a>
                     </div>
                 </div>
                 <div class="flex items-start gap-3">
                     <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">🕒</div>
                     <div>
-                        <p class="text-xs text-slate-500 font-bold mb-0.5">服務時間</p>
-                        <p class="text-sm font-bold text-slate-800">週一至週日 08:00 - 22:00</p>
+                        <p class="text-xs text-slate-500 font-bold mb-0.5">真人文字客服時間</p>
+                        <p class="text-sm font-bold text-slate-800">週一至週五 09:00 - 18:00</p>
                     </div>
                 </div>
             </div>
@@ -549,17 +543,24 @@
 
         function openWishMatchModal(items) {
             const listEl = document.getElementById('wishMatchList');
-            listEl.innerHTML = items.map(item => `
-                <div onclick="confirmWishMatchItem(${item.id})" class="flex items-center gap-4 p-3 rounded-2xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/50 cursor-pointer transition-all">
-                    <img src="/uploads/${item.image_filename}" class="w-16 h-16 object-cover rounded-xl shrink-0" alt="物品照片">
+            listEl.innerHTML = items.map(item => {
+                const isClaimed = item.status === 'claimed';
+                return `
+                <div onclick="confirmWishMatchItem(${item.id})" class="relative flex items-center gap-4 p-3 rounded-2xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/50 cursor-pointer transition-all ${isClaimed ? 'opacity-80' : ''}">
+                    <div class="relative w-16 h-16 shrink-0">
+                        <img src="/uploads/${item.image_filename}" class="w-16 h-16 object-cover rounded-xl" alt="物品照片">
+                        ${isClaimed ? '<div class="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-xl flex items-center justify-center"><span class="text-emerald-600 text-base">✅</span></div>' : ''}
+                    </div>
                     <div class="flex-grow min-w-0">
                         <p class="font-bold text-slate-800 truncate">${item.item_name || item.description}</p>
                         <p class="text-xs text-slate-500 truncate">${item.description}</p>
                         <p class="text-xs text-slate-400 mt-0.5">📍 ${item.found_location}</p>
+                        ${isClaimed ? '<p class="text-xs font-bold text-emerald-600 mt-0.5">✅ 已經由失主領回（若您已領取請忽略，若非本人領取請點此確認）</p>' : ''}
                     </div>
                     <span class="text-blue-600 text-xs font-bold shrink-0">查看 →</span>
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             const overlay = document.getElementById('wishMatchModalOverlay');
             const content = document.getElementById('wishMatchModalContent');
@@ -870,7 +871,7 @@
                         <span class="text-2xl">👀</span>
                         <div>
                             <p class="font-bold text-slate-800">我看到別人遺失的東西</p>
-                            <p class="text-xs text-slate-500">請就近交給站務人員，或聯絡客服 0800-123-456 協助登錄</p>
+                            <p class="text-xs text-slate-500">請就近交給站務人員，或聯絡客服 0800-765-888 協助登錄</p>
                         </div>
                     </div>
                 </div>
