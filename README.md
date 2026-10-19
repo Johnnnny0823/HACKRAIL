@@ -23,6 +23,22 @@
 
 ---
 
+## 📸 系統畫面
+
+> 截圖使用 repo 內附的示範資料；證件、現金等敏感物品的照片已模糊處理。
+
+| 旅客端：遺失物清冊 | 物品詳情與認領 |
+|---|---|
+| ![旅客端首頁](docs/screenshots/home.jpg) | ![物品詳情](docs/screenshots/item-detail.jpg) |
+| **引導式搜尋** | **許願池登記** |
+| ![引導式搜尋](docs/screenshots/guided-search.jpg) | ![許願池登記](docs/screenshots/wishlist.jpg) |
+
+**站務後台**：總覽儀表板、AI 辨識校正統計與遺失物管理
+
+![站務後台](docs/screenshots/admin.jpg)
+
+---
+
 ## 🏗️ 系統架構
 
 ```mermaid
